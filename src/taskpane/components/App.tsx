@@ -144,21 +144,27 @@ export default class App extends React.Component<AppProps, AppState> {
         <section className="ms-landing-page__content ms-font-m ms-fontColor-neutralPrimary">
           {!this.state.configured && <Header />}
           {this.state.gists.length > 0 && (
-            <div id="gist-list-container" style={{ display: "none" }}>
+            <div id="gist-list-container">
               <form>
-                <div id="gist-list">
-                  <GistList gists={this.state.gists} gistClickFn={this.onGistSelected} />
-                </div>
+                <GistList gists={this.state.gists} gistClickFn={this.onGistSelected} />
               </form>
             </div>
           )}
-          <div
-            id="error-display"
-            style={{ display: "none" }}
-            className="ms-u-borderBase ms-fontColor-error ms-font-m ms-bgColor-error ms-borderColor-error"
-          ></div>
+          {this.state.error && (
+            <div
+              id="error-display"
+              className="ms-u-borderBase ms-fontColor-error ms-font-m ms-bgColor-error ms-borderColor-error"
+            >
+              {this.state.error}
+            </div>
+          )}
         </section>
-        <button className="ms-Button ms-Button--primary" id="insert-button" disabled={!this.state.gistSelected}>
+        <button
+          className="ms-Button ms-Button--primary"
+          id="insert-button"
+          disabled={!this.state.gistSelected}
+          onClick={this.onClickInsertButton}
+        >
           <span className="ms-Button-label">Insert</span>
         </button>
         <Footer onSettingsClick={this.onSettingsClick} />

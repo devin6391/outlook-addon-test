@@ -1,5 +1,5 @@
 import { Gist } from "./GistList";
-import showdown from "showdown";
+let showdown = require("showdown");
 
 export function getUserGists(user: string): Promise<Gist[]> {
   var requestUrl = "https://api.github.com/users/" + user + "/gists";
@@ -24,11 +24,13 @@ export function buildBodyContent(gist: Gist, callback: (content: string, error?:
           case "HTML":
             // Insert as-is.
             callback(file.content);
+            console.log(file.content);
             break;
           case "Markdown":
             // Convert Markdown to HTML.
             var converter = new showdown.Converter();
             var html = converter.makeHtml(file.content);
+            console.log(html);
             callback(html);
             break;
           default:
