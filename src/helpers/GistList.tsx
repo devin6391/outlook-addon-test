@@ -1,5 +1,5 @@
 import * as React from "react";
-import { buildFileList } from "../../helpers/utils";
+import { buildFileList } from "./utils";
 
 export interface GistFileObj {
   [key: string]: GistFile;

@@ -1,8 +1,11 @@
 import * as React from "react";
-import { Button, ButtonType } from "office-ui-fabric-react";
 import Header from "./Header";
-import HeroList, { HeroListItem } from "./HeroList";
 import Progress from "./Progress";
+import Footer from "./Footer";
+import { getConfig, ConfigInterface, setConfig } from "../../helpers/addin-config";
+import { loadGists } from "../../helpers/utils";
+import GistList, { Gist } from "../../helpers/GistList";
+import { getGist, buildBodyContent } from "../../helpers/data";
 /* global Button, Header, HeroList, HeroListItem, Progress */
 
 export interface AppProps {
@@ -11,40 +14,120 @@ export interface AppProps {
 }
 
 export interface AppState {
-  listItems: HeroListItem[];
+  gists: Gist[];
+  error: any;
+  configured: boolean;
+  gistSelected: boolean;
 }
 
 export default class App extends React.Component<AppProps, AppState> {
   constructor(props, context) {
     super(props, context);
     this.state = {
-      listItems: []
+      gists: [],
+      error: null,
+      configured: false,
+      gistSelected: false
     };
   }
 
+  config: ConfigInterface;
+  settingsDialog: any;
+
   componentDidMount() {
-    this.setState({
-      listItems: [
-        {
-          icon: "Ribbon",
-          primaryText: "Achieve more with Office integration"
-        },
-        {
-          icon: "Unlock",
-          primaryText: "Unlock features and functionality"
-        },
-        {
-          icon: "Design",
-          primaryText: "Create and visualize like a pro"
-        }
-      ]
-    });
+    this.config = getConfig();
+    if (this.config && this.config.gitHubUserName) {
+      this.loadGists(this.config.gitHubUserName);
+    } else {
+    }
   }
 
-  click = async () => {
-    /**
-     * Insert your Outlook code here
-     */
+  loadGists = user => {
+    loadGists(user)
+      .then(gists => {
+        this.setState({ gists, error: null, configured: true });
+      })
+      .catch(error => {
+        this.setState({ error });
+      });
+  };
+
+  onGistSelected = () => {
+    this.setState({ gistSelected: true });
+  };
+
+  showError = error => {
+    this.setState({
+      configured: true,
+      gists: [],
+      error: error
+    });
+  };
+
+  receiveMessage = (message: Office.NotificationMessageDetails) => {
+    this.config = JSON.parse(message.message);
+    setConfig(this.config, function() {
+      this.settingsDialog.close();
+      this.settingsDialog = null;
+      loadGists(this.config.gitHubUserName);
+    });
+  };
+
+  dialogClosed = () => {
+    this.settingsDialog = null;
+  };
+
+  afterBody = content => {
+    if (content) {
+      Office.context.mailbox.item.body.setSelectedDataAsync(
+        content,
+        { coercionType: Office.CoercionType.Html },
+        function(result) {
+          if (result.status === Office.AsyncResultStatus.Failed) {
+            this.showError("Could not insert gist: " + result.error.message);
+          }
+        }
+      );
+    }
+  };
+
+  onClickInsertButton = () => {
+    const gistId = (document.querySelectorAll(".ms-ListItem.is-selected")[0] as HTMLInputElement).value;
+    getGist(gistId)
+      .then((gist: Gist) => {
+        buildBodyContent(gist, (content, error) => {
+          if (error) {
+            this.showError(error);
+            return;
+          }
+          this.afterBody(content);
+        });
+      })
+      .catch(err => {
+        this.showError(err);
+      });
+  };
+
+  onSettingsClick = () => {
+    let url = "https://localhost:3000/dialog.html";
+    if (this.config) {
+      url = url + "?gitHubUserName=" + this.config.gitHubUserName + "&defaultGistId=" + this.config.defaultGistId;
+    }
+    const dialogOptions = { width: 20, height: 40, displayInIframe: true };
+
+    Office.context.ui.displayDialogAsync(url, dialogOptions, function(result) {
+      this.settingsDialog = result.value;
+      this.settingsDialog.addEventHandler(
+        // @ts-ignore
+        Microsoft.Office.WebExtension.EventType.DialogMessageReceived,
+        this.receiveMessage
+      );
+      this.settingsDialog.addEventHandler(
+        // @ts-ignore
+        Microsoft.Office.WebExtension.EventType.DialogEventReceived,
+        this.dialogClosed
+      );
+    });
   };
 
   render() {
@@ -57,21 +140,28 @@ export default class App extends React.Component<AppProps, AppState> {
     }
 
     return (
-      <div className="ms-welcome">
-        <Header logo="assets/logo-filled.png" title={this.props.title} message="Welcome" />
-        <HeroList message="Discover what Office Add-ins can do for you today!" items={this.state.listItems}>
-          <p className="ms-font-l">
-            Modify the source files, then click <b>Run</b>.
-          </p>
-          <Button
-            className="ms-welcome__action"
-            buttonType={ButtonType.hero}
-            iconProps={{ iconName: "ChevronRight" }}
-            onClick={this.click}
-          >
-            Run
-          </Button>
-        </HeroList>
+      <div className="ms-landing-page__main">
+        <section className="ms-landing-page__content ms-font-m ms-fontColor-neutralPrimary">
+          {!this.state.configured && <Header />}
+          {this.state.gists.length > 0 && (
+            <div id="gist-list-container" style={{ display: "none" }}>
+              <form>
+                <div id="gist-list">
+                  <GistList gists={this.state.gists} gistClickFn={this.onGistSelected} />
+                </div>
+              </form>
+            </div>
+          )}
+          <div
+            id="error-display"
+            style={{ display: "none" }}
+            className="ms-u-borderBase ms-fontColor-error ms-font-m ms-bgColor-error ms-borderColor-error"
+          ></div>
+        </section>
+        <button className="ms-Button ms-Button--primary" id="insert-button" disabled={!this.state.gistSelected}>
+          <span className="ms-Button-label">Insert</span>
+        </button>
+        <Footer onSettingsClick={this.onSettingsClick} />
       </div>
     );
   }

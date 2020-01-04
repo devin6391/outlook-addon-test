@@ -1,20 +1,16 @@
 import * as React from "react";
 
-export interface HeaderProps {
-  title: string;
-  logo: string;
-  message: string;
-}
+export interface HeaderProps {}
 
 export default class Header extends React.Component<HeaderProps> {
   render() {
-    const { title, logo, message } = this.props;
-
     return (
-      <section className="ms-welcome__header ms-bgColor-neutralLighter ms-u-fadeIn500">
-        <img width="90" height="90" src={logo} alt={title} title={title} />
-        <h1 className="ms-fontSize-su ms-fontWeight-light ms-fontColor-neutralPrimary">{message}</h1>
-      </section>
+      <div id="not-configured">
+        <div className="centered ms-font-xxl ms-u-textAlignCenter">Welcome!</div>
+        <div className="ms-font-xl" id="settings-prompt">
+          Please choose the <strong>Settings</strong> icon at the bottom of this window to configure this add-in.
+        </div>
+      </div>
     );
   }
 }

@@ -1,5 +1,5 @@
 import { getUserGists } from "./data";
-import { GistFileObj, Gist } from "../settings/components/GistList";
+import { GistFileObj, Gist } from "./GistList";
 
 export function loadGists(user: string): Promise<Gist[]> {
   return getUserGists(user);
@@ -16,7 +16,6 @@ export function getParameterByName(name: string, url?: string) {
   name = name.replace(/[\[\]]/g, "\\$&");
   var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
     results = regex.exec(url);
-  console.log(results);
   if (!results) return null;
   if (!results[2]) return "";
   return decodeURIComponent(results[2].replace(/\+/g, " "));

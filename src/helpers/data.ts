@@ -1,4 +1,4 @@
-import { Gist } from "../settings/components/GistList";
+import { Gist } from "./GistList";
 import showdown from "showdown";
 
 export function getUserGists(user: string): Promise<Gist[]> {

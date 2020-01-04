@@ -1,6 +1,6 @@
 import { getGist, buildBodyContent } from "../helpers/data";
 import { ConfigInterface, getConfig, setConfig } from "../helpers/addin-config";
-import { Gist } from "../settings/components/GistList";
+import { Gist } from "../helpers/GistList";
 
 // const URI = require("urijs");
 

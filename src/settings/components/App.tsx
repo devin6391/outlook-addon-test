@@ -1,7 +1,8 @@
 import * as React from "react";
 import { getParameterByName, loadGists } from "../../helpers/utils";
-import GistList, { Gist } from "./GistList";
+import GistList, { Gist } from "../../helpers/GistList";
 import debounce from "lodash-es/debounce";
+import TopInfo from "./TopInfo";
 
 export interface AppProps {}
 
@@ -77,7 +78,7 @@ export default class App extends React.Component<AppProps, AppState> {
     if (warn) {
       this.setState({ warn });
     } else {
-      const user = getParameterByName("devin6391");
+      const user = getParameterByName("gitHubUserName");
       const gistId = getParameterByName("defaultGistId");
       this.setState({ user, gistId });
       this.loadGists(user);
@@ -87,20 +88,7 @@ export default class App extends React.Component<AppProps, AppState> {
   render() {
     return (
       <div className="ms-font-m ms-fontColor-neutralPrimary">
-        {!this.state.gistSelected && (
-          <div className="not-configured-warning ms-MessageBar ms-MessageBar--warning">
-            <div className="ms-MessageBar-content">
-              <div className="ms-MessageBar-icon">
-                <i className="ms-Icon ms-Icon--Info"></i>
-              </div>
-              <div className="ms-MessageBar-text">
-                {"Oops! It looks like you haven't configured <strong>Git the gist</strong> yet."}
-                <br />
-                Please configure your GitHub username and select a default gist, then try that action again!
-              </div>
-            </div>
-          </div>
-        )}
+        {!this.state.gistSelected && <TopInfo />}
         <div className="ms-font-xxl">Settings</div>
         <div className="ms-Grid">
           <div className="ms-Grid-row">
